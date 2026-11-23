@@ -10,6 +10,10 @@ const addTodoInputSchema = {
   title: z.string().min(1),
 };
 
+const completeTodoInputSchema = {
+  id: z.string().min(1),
+};
+
 const replyWithTodos = (message) => ({
   content: message ? [{ type: "text", text: message }] : [],
   structuredContent: { tasks: todos },
@@ -17,6 +21,39 @@ const replyWithTodos = (message) => ({
 
 function createTodoServer() {
   const server = new McpServer({ name: "todo-app", version: "0.1.0" });
+  server.registerTool(
+    "list_todos",
+    {
+      title: "List todos",
+      description: "Lists all todo items.",
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing todos",
+        "openai/toolInvocation/invoked": "Listed todos",
+      },
+    },
+    async () => {
+      return replyWithTodos();
+    },
+  );
+  server.registerTool(
+    "add_todo",
+    {
+      title: "Add todo",
+      description: "Creates a todo item with the given title.",
+      inputSchema: addTodoInputSchema,
+      _meta: {
+        "openai/toolInvocation/invoking": "Adding todo",
+        "openai/toolInvocation/invoked": "Added todo",
+      },
+    },
+    async (args) => {
+      const title = args?.title?.trim?.() ?? "";
+      if (!title) return replyWithTodos("Missing title.");
+      const todo = { id: `todo-${nextId++}`, title, completed: false };
+      todos = [...todos, todo];
+      return replyWithTodos(`${todo.title}`);
+    },
+  ); // inside the createTodoServer function block;
   server.registerTool(
     "complete_todo",
 
