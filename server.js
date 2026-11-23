@@ -2,7 +2,9 @@ import { createServer } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
+import { readFileSync } from "node:fs";
 
+const todoHtml = readFileSync("public/todo-widget.html", "utf8");
 let todos = [];
 let nextId = 1;
 
@@ -27,6 +29,12 @@ function createTodoServer() {
       title: "List todos",
       description: "Lists all todo items.",
       _meta: {
+        ui: {
+          resourceUri: "ui://widget/todo.html",
+        },
+        // Backward compatibility with ChatGPT
+        "openai/outputTemplate": "ui://widget/todo.html",
+
         "openai/toolInvocation/invoking": "Listing todos",
         "openai/toolInvocation/invoked": "Listed todos",
       },
@@ -79,6 +87,21 @@ function createTodoServer() {
       );
       return replyWithTodos(`Completed "${todo.title}".`);
     },
+  );
+  server.registerResource(
+    "todo-widget",
+    "ui://widget/todo.html",
+    {},
+    async () => ({
+      contents: [
+        {
+          uri: "ui://widget/todo.html",
+          mimeType: "text/html+skybridge",
+          text: todoHtml,
+          _meta: { "openai/widgetPrefersBorder": true },
+        },
+      ],
+    }),
   );
   return server;
 }
