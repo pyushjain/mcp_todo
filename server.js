@@ -32,9 +32,7 @@ function createTodoServer() {
         ui: {
           resourceUri: "ui://widget/todo.html",
         },
-        // Backward compatibility with ChatGPT
         "openai/outputTemplate": "ui://widget/todo.html",
-
         "openai/toolInvocation/invoking": "Listing todos",
         "openai/toolInvocation/invoked": "Listed todos",
       },
